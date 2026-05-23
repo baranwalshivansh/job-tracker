@@ -3,36 +3,41 @@ const DEV_ORIGIN_PATTERNS = [
   /^http:\/\/127\.0\.0\.1:517[34]$/,
 ];
 
-const getExtraOrigins = () => {
+const normalizeOrigin = (url) => (url ? url.trim().replace(/\/$/, "") : "");
+
+const getAllowedOrigins = () => {
   const origins = [];
   if (process.env.CLIENT_URL) {
-    origins.push(process.env.CLIENT_URL.trim());
+    origins.push(normalizeOrigin(process.env.CLIENT_URL));
   }
   if (process.env.CLIENT_URLS) {
-    origins.push(
-      ...process.env.CLIENT_URLS.split(",")
-        .map((url) => url.trim())
-        .filter(Boolean)
-    );
+    process.env.CLIENT_URLS.split(",").forEach((url) => {
+      const normalized = normalizeOrigin(url);
+      if (normalized) origins.push(normalized);
+    });
   }
   return origins;
 };
+
+const isProduction = process.env.NODE_ENV === "production";
 
 const isAllowedOrigin = (origin) => {
   if (!origin) {
     return true;
   }
 
-  const extras = getExtraOrigins();
-  if (extras.includes(origin)) {
+  const normalized = normalizeOrigin(origin);
+  const allowed = getAllowedOrigins();
+
+  if (allowed.includes(normalized)) {
     return true;
   }
 
-  if (process.env.NODE_ENV !== "production") {
-    return DEV_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin));
+  if (!isProduction) {
+    return DEV_ORIGIN_PATTERNS.some((pattern) => pattern.test(normalized));
   }
 
-  return extras.length > 0 && extras.includes(origin);
+  return false;
 };
 
 const corsOptions = {
