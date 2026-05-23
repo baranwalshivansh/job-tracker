@@ -128,7 +128,14 @@ const getJobById = async (req, res) => {
 
 const getRecruiterJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({ created_by: req.id }).populate("company").sort({ createdAt: -1 });
+    const jobs = await Job.find({ created_by: req.id })
+      .populate("company")
+      .populate({
+        path: "applications",
+        select: "status applicant createdAt",
+        populate: { path: "applicant", select: "fullname email" },
+      })
+      .sort({ createdAt: -1 });
 
     return sendResponse(res, 200, true, "Recruiter jobs fetched successfully", jobs);
   } catch (error) {

@@ -2,7 +2,17 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api, { getErrorMessage } from "../utils/api.js";
 import { USER_KEY } from "../utils/constants.js";
 
-const storedUser = localStorage.getItem(USER_KEY);
+const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    localStorage.removeItem(USER_KEY);
+    return null;
+  }
+};
+
+const storedUser = getStoredUser();
 
 export const registerUser = createAsyncThunk("auth/register", async (formData, { rejectWithValue }) => {
   try {
@@ -50,13 +60,19 @@ export const updateProfile = createAsyncThunk("auth/updateProfile", async (formD
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: storedUser ? JSON.parse(storedUser) : null,
+    user: storedUser,
     loading: false,
     error: null,
   },
   reducers: {
     clearAuthError: (state) => {
       state.error = null;
+    },
+    clearSession: (state) => {
+      state.user = null;
+      state.error = null;
+      state.loading = false;
+      localStorage.removeItem(USER_KEY);
     },
   },
   extraReducers: (builder) => {
@@ -103,5 +119,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError } = authSlice.actions;
+export const { clearAuthError, clearSession } = authSlice.actions;
 export default authSlice.reducer;

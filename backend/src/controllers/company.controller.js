@@ -66,6 +66,10 @@ const getCompanyById = async (req, res) => {
       return sendResponse(res, 404, false, "Company not found");
     }
 
+    if (company.userId.toString() !== req.id.toString()) {
+      return sendResponse(res, 403, false, "You can only view your own company");
+    }
+
     return sendResponse(res, 200, true, "Company fetched successfully", company);
   } catch (error) {
     console.error("Get company by id error:", error.message);

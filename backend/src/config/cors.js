@@ -37,7 +37,8 @@ const isAllowedOrigin = (origin) => {
 const sharedOptions = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 204,
 };
 
 /** Production: fixed CLIENT_URL (e.g. https://job-tracker-ten-ashen.vercel.app) */

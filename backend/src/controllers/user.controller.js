@@ -38,7 +38,7 @@ const register = async (req, res) => {
 
     const user = await User.create({
       fullname,
-      email,
+      email: email.toLowerCase(),
       phoneNumber,
       password: hashedPassword,
       role,

@@ -18,11 +18,23 @@ const Login = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("session") === "expired") {
+      toast.error("Session expired. Please sign in again.");
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     if (user) {
-      const dest = user.role === "recruiter" ? "/recruiter" : location.state?.from?.pathname || "/dashboard";
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get("redirect");
+      const dest =
+        user.role === "recruiter"
+          ? "/recruiter"
+          : redirect || location.state?.from?.pathname || "/dashboard";
       navigate(dest, { replace: true });
     }
-  }, [user, navigate, location.state]);
+  }, [user, navigate, location.state, location.search]);
 
   const validate = () => {
     const next = {};

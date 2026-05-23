@@ -5,7 +5,13 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import App from "./App.jsx";
 import store from "./redux/store.js";
+import { clearSession } from "./redux/authSlice.js";
+import { registerUnauthorizedHandler } from "./utils/api.js";
 import "./index.css";
+
+registerUnauthorizedHandler(() => {
+  store.dispatch(clearSession());
+});
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
