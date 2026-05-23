@@ -1,12 +1,16 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { FileText, Mail } from "lucide-react";
 import toast from "react-hot-toast";
 import { fetchApplicants, updateApplicationStatus } from "../redux/applicationSlice.js";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import Loader from "../components/Loader.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
+import Avatar from "../components/ui/Avatar.jsx";
 import { applicationStatuses } from "../utils/constants.js";
+import { Users } from "lucide-react";
 
 const Applicants = () => {
   const { id } = useParams();
@@ -32,54 +36,77 @@ const Applicants = () => {
   const applications = applicantsJob.applications || [];
 
   return (
-    <section className="page-shell py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Applicants</h1>
-        <p className="mt-1 text-sm text-slate-600">{applicantsJob.title}</p>
-      </div>
+    <div>
+      <PageHeader
+        title="Applicants"
+        subtitle={applicantsJob.title}
+        actions={
+          <Link to={`/recruiter/jobs/${id}/edit`} className="btn-secondary text-sm">
+            Edit job
+          </Link>
+        }
+      />
+
       {applications.length ? (
-        <div className="panel overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Applicant</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Skills</th>
-                  <th className="px-4 py-3">Resume</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Update</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {applications.map((application) => (
-                  <tr key={application._id}>
-                    <td className="px-4 py-3 font-semibold text-ink">{application.applicant?.fullname}</td>
-                    <td className="px-4 py-3 text-slate-600">{application.applicant?.email}</td>
-                    <td className="px-4 py-3 text-slate-600">{application.applicant?.profile?.skills?.join(", ") || "Not added"}</td>
-                    <td className="px-4 py-3">
-                      {application.applicant?.profile?.resume ? (
-                        <a className="font-semibold text-brand" href={application.applicant.profile.resume} target="_blank" rel="noreferrer">Resume</a>
-                      ) : (
-                        <span className="text-slate-500">None</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3"><StatusBadge status={application.status} /></td>
-                    <td className="px-4 py-3">
-                      <select className="input max-w-36" value={application.status} onChange={(e) => handleStatus(application._id, e.target.value)}>
-                        {applicationStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {applications.map((application) => (
+            <article key={application._id} className="panel p-5">
+              <div className="flex items-start gap-4">
+                <Avatar
+                  src={application.applicant?.profile?.profilePhoto}
+                  name={application.applicant?.fullname}
+                  size="md"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-ink">{application.applicant?.fullname}</p>
+                  <p className="flex items-center gap-1 text-sm text-ink-muted">
+                    <Mail className="h-3.5 w-3.5" />
+                    {application.applicant?.email}
+                  </p>
+                  <p className="mt-2 text-xs text-ink-muted">
+                    Skills: {application.applicant?.profile?.skills?.join(", ") || "Not listed"}
+                  </p>
+                  {application.applicant?.profile?.bio && (
+                    <p className="mt-2 line-clamp-2 text-xs text-ink-muted">{application.applicant.profile.bio}</p>
+                  )}
+                </div>
+                <StatusBadge status={application.status} />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-surface-border pt-4">
+                {application.applicant?.profile?.resume ? (
+                  <a
+                    className="btn-secondary !min-h-9 text-xs"
+                    href={application.applicant.profile.resume}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Resume
+                  </a>
+                ) : (
+                  <span className="text-xs text-ink-faint">No resume uploaded</span>
+                )}
+                <select
+                  className="input ml-auto max-w-36 !min-h-9 text-xs"
+                  value={application.status}
+                  onChange={(e) => handleStatus(application._id, e.target.value)}
+                >
+                  {applicationStatuses.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+            </article>
+          ))}
         </div>
       ) : (
-        <EmptyState title="No applicants yet" message="Applications will appear here when students apply." />
+        <EmptyState
+          icon={Users}
+          title="No applicants yet"
+          message="Applications will appear here when students apply to this role."
+        />
       )}
-    </section>
+    </div>
   );
 };
 

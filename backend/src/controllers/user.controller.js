@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const sendResponse = require("../utils/sendResponse");
 const uploadToCloudinary = require("../utils/uploadToCloudinary");
+const { getAuthCookieOptions } = require("../utils/authCookie");
 
 const sanitizeUser = (user) => ({
   _id: user._id,
@@ -84,17 +85,7 @@ const login = async (req, res) => {
       expiresIn: "1d",
     });
 
-    const cookieOptions = {
-      httpOnly: true,
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000,
-    };
-
-    if (process.env.NODE_ENV === "production") {
-      cookieOptions.secure = true;
-    }
-
-    return res.status(200).cookie("token", token, cookieOptions).json({
+    return res.status(200).cookie("token", token, getAuthCookieOptions()).json({
       success: true,
       message: `Welcome back ${user.fullname}`,
       data: sanitizeUser(user),
@@ -110,8 +101,7 @@ const logout = async (req, res) => {
     return res
       .status(200)
       .cookie("token", "", {
-        httpOnly: true,
-        sameSite: "strict",
+        ...getAuthCookieOptions(),
         maxAge: 0,
       })
       .json({

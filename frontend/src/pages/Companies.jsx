@@ -1,9 +1,13 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { PlusCircle } from "lucide-react";
 import { fetchCompanies } from "../redux/companySlice.js";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import Loader from "../components/Loader.jsx";
 import EmptyState from "../components/EmptyState.jsx";
+import Avatar from "../components/ui/Avatar.jsx";
+import { Building2 } from "lucide-react";
 
 const Companies = () => {
   const dispatch = useDispatch();
@@ -16,40 +20,52 @@ const Companies = () => {
   if (loading) return <Loader />;
 
   return (
-    <section className="page-shell py-8">
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Companies</h1>
-          <p className="mt-1 text-sm text-slate-600">Create and maintain recruiter-owned companies.</p>
-        </div>
-        <Link to="/recruiter/companies/new" className="btn-primary">Create company</Link>
-      </div>
+    <div>
+      <PageHeader
+        title="Companies"
+        subtitle="Manage the organizations you hire for."
+        actions={
+          <Link to="/recruiter/companies/new" className="btn-primary">
+            <PlusCircle className="h-4 w-4" />
+            Create company
+          </Link>
+        }
+      />
+
       {companies.length ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {companies.map((company) => (
-            <article key={company._id} className="panel p-5">
+            <article key={company._id} className="panel flex flex-col p-5">
               <div className="flex items-center gap-3">
-                {company.logo ? (
-                  <img src={company.logo} alt={company.name} className="h-12 w-12 rounded-md object-cover" />
-                ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 font-bold text-brand">
-                    {company.name.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <Avatar src={company.logo} name={company.name} size="md" />
                 <div>
                   <h2 className="font-semibold text-ink">{company.name}</h2>
-                  <p className="text-sm text-slate-500">{company.location || "Location not set"}</p>
+                  <p className="text-sm text-ink-muted">{company.location || "Add location"}</p>
                 </div>
               </div>
-              <p className="mt-4 line-clamp-3 text-sm text-slate-600">{company.description || "No description yet."}</p>
-              <Link className="btn-secondary mt-5 w-full" to={`/recruiter/companies/${company._id}`}>Edit company</Link>
+              <p className="mt-4 flex-1 line-clamp-3 text-sm text-ink-muted">
+                {company.description || "No description yet."}
+              </p>
+              {company.website && (
+                <a href={company.website} target="_blank" rel="noreferrer" className="mt-2 text-xs font-medium text-brand hover:underline">
+                  {company.website}
+                </a>
+              )}
+              <Link className="btn-secondary mt-5 w-full" to={`/recruiter/companies/${company._id}`}>
+                Edit company
+              </Link>
             </article>
           ))}
         </div>
       ) : (
-        <EmptyState title="No companies yet" message="Create a company before posting jobs." action={<Link className="btn-primary" to="/recruiter/companies/new">Create company</Link>} />
+        <EmptyState
+          icon={Building2}
+          title="No companies yet"
+          message="Create a company before posting jobs."
+          action={<Link className="btn-primary" to="/recruiter/companies/new">Create company</Link>}
+        />
       )}
-    </section>
+    </div>
   );
 };
 

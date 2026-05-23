@@ -1,14 +1,16 @@
+import { cn } from "../utils/cn.js";
+
 const styles = {
-  pending: "bg-amber-50 text-amber-700 border-amber-200",
-  accepted: "bg-green-50 text-green-700 border-green-200",
-  rejected: "bg-red-50 text-red-700 border-red-200",
+  pending: "bg-amber-50 text-amber-700 ring-amber-200",
+  accepted: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  rejected: "bg-red-50 text-red-700 ring-red-200",
 };
 
 const StatusBadge = ({ status }) => {
-  const value = status || "pending";
+  const key = status?.toLowerCase() || "pending";
   return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${styles[value] || styles.pending}`}>
-      {value}
+    <span className={cn("badge capitalize ring-1 ring-inset", styles[key] || styles.pending)}>
+      {status || "pending"}
     </span>
   );
 };

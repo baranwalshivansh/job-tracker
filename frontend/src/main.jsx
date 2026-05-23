@@ -12,7 +12,19 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={store}>
       <BrowserRouter>
         <App />
-        <Toaster position="top-right" />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              borderRadius: "10px",
+              background: "#0f172a",
+              color: "#f8fafc",
+              fontSize: "14px",
+            },
+            success: { iconTheme: { primary: "#2563eb", secondary: "#fff" } },
+          }}
+        />
       </BrowserRouter>
     </Provider>
   </React.StrictMode>

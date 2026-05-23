@@ -10,7 +10,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to={user.role === "recruiter" ? "/recruiter" : "/jobs"} replace />;
+    return <Navigate to={user.role === "recruiter" ? "/recruiter" : "/dashboard"} replace />;
   }
 
   return <Outlet />;

@@ -5,7 +5,9 @@ import toast from "react-hot-toast";
 import { fetchCompanies } from "../redux/companySlice.js";
 import { createJob, fetchJobById, updateJob } from "../redux/jobSlice.js";
 import FormField from "../components/FormField.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import Loader from "../components/Loader.jsx";
+import { jobTypes, locations } from "../utils/constants.js";
 
 const initialForm = {
   title: "",
@@ -13,7 +15,7 @@ const initialForm = {
   requirements: "",
   salary: "",
   location: "",
-  jobType: "Full Time",
+  jobType: "Internship",
   experience: "",
   position: "",
   companyId: "",
@@ -41,7 +43,7 @@ const JobForm = () => {
         requirements: selectedJob.requirements?.join(", ") || "",
         salary: selectedJob.salary || "",
         location: selectedJob.location || "",
-        jobType: selectedJob.jobType || "Full Time",
+        jobType: selectedJob.jobType || "Internship",
         experience: selectedJob.experienceLevel || "",
         position: selectedJob.position || "",
         companyId: selectedJob.company?._id || selectedJob.company || "",
@@ -63,44 +65,73 @@ const JobForm = () => {
 
   if (!companies.length) {
     return (
-      <section className="page-shell py-8">
-        <div className="panel p-6 text-center">
-          <h1 className="text-xl font-bold">Create a company first</h1>
-          <p className="mt-2 text-sm text-slate-600">Jobs must belong to one of your recruiter companies.</p>
-          <Link className="btn-primary mt-5" to="/recruiter/companies/new">Create company</Link>
+      <div>
+        <PageHeader title="Post a job" subtitle="You need a company profile first." />
+        <div className="panel p-8 text-center">
+          <p className="text-ink-muted">Jobs must belong to one of your recruiter companies.</p>
+          <Link className="btn-primary mt-6 inline-flex" to="/recruiter/companies/new">
+            Create company
+          </Link>
         </div>
-      </section>
+      </div>
     );
   }
 
   if (isEdit && loading && !selectedJob) return <Loader />;
 
   return (
-    <section className="page-shell py-8">
+    <div>
+      <PageHeader title={isEdit ? "Edit job" : "Post a new job"} subtitle="Write clear details to attract the right candidates." />
       <form onSubmit={handleSubmit} className="panel mx-auto max-w-3xl space-y-5 p-6">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{isEdit ? "Edit job" : "Post job"}</h1>
-          <p className="mt-1 text-sm text-slate-600">Keep the details concise and searchable.</p>
-        </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Title"><input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></FormField>
+          <FormField label="Job title">
+            <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="SDE Intern" />
+          </FormField>
           <FormField label="Company">
             <select className="input" value={form.companyId} onChange={(e) => setForm({ ...form, companyId: e.target.value })} required>
               <option value="">Select company</option>
-              {companies.map((company) => <option key={company._id} value={company._id}>{company.name}</option>)}
+              {companies.map((company) => (
+                <option key={company._id} value={company._id}>{company.name}</option>
+              ))}
             </select>
           </FormField>
-          <FormField label="Salary"><input className="input" type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} required /></FormField>
-          <FormField label="Location"><input className="input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required /></FormField>
-          <FormField label="Job type"><input className="input" value={form.jobType} onChange={(e) => setForm({ ...form, jobType: e.target.value })} required /></FormField>
-          <FormField label="Experience"><input className="input" type="number" value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} required /></FormField>
-          <FormField label="Open positions"><input className="input" type="number" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} required /></FormField>
-          <FormField label="Requirements"><input className="input" value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} placeholder="React, Node.js" required /></FormField>
+          <FormField label="Salary (annual INR)">
+            <input className="input" type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} required />
+          </FormField>
+          <FormField label="Location">
+            <select className="input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required>
+              <option value="">Select location</option>
+              {locations.map((loc) => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Job type">
+            <select className="input" value={form.jobType} onChange={(e) => setForm({ ...form, jobType: e.target.value })} required>
+              {jobTypes.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Experience (years)">
+            <input className="input" type="number" min="0" value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} required />
+          </FormField>
+          <FormField label="Open positions">
+            <input className="input" type="number" min="1" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} required />
+          </FormField>
+          <FormField label="Skills (comma-separated)">
+            <input className="input" value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} placeholder="React, Node.js" required />
+          </FormField>
         </div>
-        <FormField label="Description"><textarea className="input min-h-32" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></FormField>
-        <button className="btn-primary" disabled={loading}>{loading ? "Saving..." : "Save job"}</button>
+        <FormField label="Description">
+          <textarea className="input min-h-36" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required placeholder="Describe responsibilities, team, and what you're looking for..." />
+        </FormField>
+        <div className="flex gap-3">
+          <button className="btn-primary" disabled={loading}>{loading ? "Saving..." : "Save job"}</button>
+          <Link to="/recruiter/jobs" className="btn-secondary">Cancel</Link>
+        </div>
       </form>
-    </section>
+    </div>
   );
 };
 

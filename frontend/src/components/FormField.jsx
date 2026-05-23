@@ -1,10 +1,13 @@
-const FormField = ({ label, error, children }) => {
+import { cn } from "../utils/cn.js";
+
+const FormField = ({ label, error, hint, children, className }) => {
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
+    <div className={cn("space-y-1.5", className)}>
+      {label && <label className="block text-sm font-medium text-ink">{label}</label>}
       {children}
-      {error && <span className="mt-1 block text-xs text-coral">{error}</span>}
-    </label>
+      {hint && !error && <p className="text-xs text-ink-muted">{hint}</p>}
+      {error && <p className="text-xs font-medium text-red-600">{error}</p>}
+    </div>
   );
 };
 

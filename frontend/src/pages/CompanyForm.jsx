@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { createCompany, fetchCompanyById, updateCompany } from "../redux/companySlice.js";
 import FormField from "../components/FormField.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import Loader from "../components/Loader.jsx";
 
 const CompanyForm = () => {
@@ -54,26 +55,36 @@ const CompanyForm = () => {
   if (isEdit && loading && !selectedCompany) return <Loader />;
 
   return (
-    <section className="page-shell py-8">
+    <div>
+      <PageHeader
+        title={isEdit ? "Edit company" : "Create company"}
+        subtitle={isEdit ? "Update your company profile and logo." : "Start with a name — add details after creation."}
+      />
       <form onSubmit={handleSubmit} className="panel mx-auto max-w-2xl space-y-5 p-6">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">{isEdit ? "Edit company" : "Create company"}</h1>
-          <p className="mt-1 text-sm text-slate-600">{isEdit ? "Update public company details and logo." : "Start with a company name, then add details."}</p>
-        </div>
-        <FormField label="Company name"><input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></FormField>
+        <FormField label="Company name">
+          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        </FormField>
         {isEdit && (
           <>
-            <FormField label="Description"><textarea className="input min-h-28" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></FormField>
+            <FormField label="Description">
+              <textarea className="input min-h-28" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What does your company do?" />
+            </FormField>
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Website"><input className="input" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></FormField>
-              <FormField label="Location"><input className="input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></FormField>
+              <FormField label="Website">
+                <input className="input" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://company.com" />
+              </FormField>
+              <FormField label="Location">
+                <input className="input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Bengaluru" />
+              </FormField>
             </div>
-            <FormField label="Company logo"><input className="input" type="file" accept="image/*" onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })} /></FormField>
+            <FormField label="Company logo">
+              <input className="input" type="file" accept="image/*" onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })} />
+            </FormField>
           </>
         )}
         <button className="btn-primary" disabled={loading}>{loading ? "Saving..." : "Save company"}</button>
       </form>
-    </section>
+    </div>
   );
 };
 
