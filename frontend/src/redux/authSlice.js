@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api, { getErrorMessage } from "../utils/api.js";
+import { beginAuthGracePeriod, clearAuthGracePeriod } from "../utils/authGrace.js";
 import { USER_KEY } from "../utils/constants.js";
 
 const getStoredUser = () => {
@@ -28,6 +29,7 @@ export const registerUser = createAsyncThunk("auth/register", async (formData, {
 export const loginUser = createAsyncThunk("auth/login", async (payload, { rejectWithValue }) => {
   try {
     const { data } = await api.post("/user/login", payload);
+    beginAuthGracePeriod();
     localStorage.setItem(USER_KEY, JSON.stringify(data.data));
     return data.data;
   } catch (error) {
@@ -37,7 +39,8 @@ export const loginUser = createAsyncThunk("auth/login", async (payload, { reject
 
 export const logoutUser = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
   try {
-    await api.get("/user/logout");
+    await api.get("/user/logout", { skipAuthRedirect: true });
+    clearAuthGracePeriod();
     localStorage.removeItem(USER_KEY);
     return null;
   } catch (error) {

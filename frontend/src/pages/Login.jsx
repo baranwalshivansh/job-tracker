@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,12 +17,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const expiredToastShown = useRef(false);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("session") === "expired") {
+    if (params.get("session") === "expired" && !expiredToastShown.current) {
+      expiredToastShown.current = true;
       toast.error("Session expired. Please sign in again.");
+      navigate("/login", { replace: true, state: location.state });
     }
-  }, [location.search]);
+  }, [location.search, location.state, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -50,6 +54,7 @@ const Login = () => {
     if (!validate()) return;
     const result = await dispatch(loginUser(form));
     if (loginUser.fulfilled.match(result)) {
+      expiredToastShown.current = false;
       toast.success("Welcome back!");
     } else {
       toast.error(result.payload || "Login failed");
