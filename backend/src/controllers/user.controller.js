@@ -5,6 +5,8 @@ const sendResponse = require("../utils/sendResponse");
 const uploadToCloudinary = require("../utils/uploadToCloudinary");
 const { getAuthCookieOptions } = require("../utils/authCookie");
 
+const OPTIONAL_UPLOAD_TIMEOUT_MS = 4000;
+
 const sanitizeUser = (user) => ({
   _id: user._id,
   fullname: user.fullname,
@@ -15,6 +17,32 @@ const sanitizeUser = (user) => ({
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
+
+const uploadOptionalProfilePhoto = async (file) => {
+  if (!file) {
+    return null;
+  }
+
+  let timeoutId;
+  const timeout = new Promise((resolve) => {
+    timeoutId = setTimeout(() => {
+      console.error("Registration profile photo upload skipped: Cloudinary timed out");
+      resolve(null);
+    }, OPTIONAL_UPLOAD_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([
+      uploadToCloudinary(file, "job-portal/profile-photos"),
+      timeout,
+    ]);
+  } catch (error) {
+    console.error("Registration profile photo upload skipped:", error.message);
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 const register = async (req, res) => {
   try {
@@ -34,7 +62,7 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const cloudResponse = await uploadToCloudinary(req.file, "job-portal/profile-photos");
+    const cloudResponse = await uploadOptionalProfilePhoto(req.file);
 
     const user = await User.create({
       fullname,

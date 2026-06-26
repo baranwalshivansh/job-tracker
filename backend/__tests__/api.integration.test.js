@@ -161,8 +161,10 @@ describe("Authentication and protected access", () => {
     expect(roleMismatch.body.success).toBe(false);
 
     const loginResponse = await login(agent, studentUser).expect(200);
-    expect(loginResponse.headers["set-cookie"].join(";")).toContain("HttpOnly");
-    expect(loginResponse.headers["set-cookie"].join(";")).toContain("token=");
+    const loginCookie = loginResponse.headers["set-cookie"].join(";");
+    expect(loginCookie).toContain("HttpOnly");
+    expect(loginCookie).toContain("Max-Age=86400");
+    expect(loginCookie).toContain("token=");
 
     const logout = await agent.get("/api/v1/user/logout").expect(200);
     expect(logout.headers["set-cookie"].join(";")).toContain("Max-Age=0");

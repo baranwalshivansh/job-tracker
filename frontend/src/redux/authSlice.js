@@ -27,12 +27,13 @@ export const registerUser = createAsyncThunk("auth/register", async (formData, {
 });
 
 export const loginUser = createAsyncThunk("auth/login", async (payload, { rejectWithValue }) => {
+  beginAuthGracePeriod();
   try {
     const { data } = await api.post("/user/login", payload);
-    beginAuthGracePeriod();
     localStorage.setItem(USER_KEY, JSON.stringify(data.data));
     return data.data;
   } catch (error) {
+    clearAuthGracePeriod();
     return rejectWithValue(getErrorMessage(error, "Login failed"));
   }
 });
