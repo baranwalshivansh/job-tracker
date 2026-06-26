@@ -8,6 +8,9 @@ const connectDB = async () => {
 
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 10000,
+      // Safety net: if the URI has no database name, fall back to "job-portal"
+      // rather than Mongoose's default of "test" (which Atlas users rarely have access to).
+      dbName: "job-portal",
     });
     console.log("MongoDB connected successfully");
   } catch (error) {

@@ -5,8 +5,6 @@ const sendResponse = require("../utils/sendResponse");
 const uploadToCloudinary = require("../utils/uploadToCloudinary");
 const { getAuthCookieOptions } = require("../utils/authCookie");
 
-const OPTIONAL_UPLOAD_TIMEOUT_MS = 4000;
-
 const sanitizeUser = (user) => ({
   _id: user._id,
   fullname: user.fullname,
@@ -18,30 +16,40 @@ const sanitizeUser = (user) => ({
   updatedAt: user.updatedAt,
 });
 
-const uploadOptionalProfilePhoto = async (file) => {
-  if (!file) {
-    return null;
-  }
+/**
+ * Upload a profile photo in the background after the user has already been
+ * created. The signup response is sent immediately; if the upload succeeds
+ * within the timeout window the user document is updated silently.
+ * This removes the Cloudinary round-trip from the critical signup path.
+ */
+const uploadProfilePhotoInBackground = (file, userId) => {
+  if (!file || !userId) return;
 
+  const TIMEOUT_MS = 10000;
   let timeoutId;
+
   const timeout = new Promise((resolve) => {
     timeoutId = setTimeout(() => {
-      console.error("Registration profile photo upload skipped: Cloudinary timed out");
+      console.error("Background profile photo upload timed out — skipped");
       resolve(null);
-    }, OPTIONAL_UPLOAD_TIMEOUT_MS);
+    }, TIMEOUT_MS);
   });
 
-  try {
-    return await Promise.race([
-      uploadToCloudinary(file, "job-portal/profile-photos"),
-      timeout,
-    ]);
-  } catch (error) {
-    console.error("Registration profile photo upload skipped:", error.message);
-    return null;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  Promise.race([
+    uploadToCloudinary(file, "job-portal/profile-photos"),
+    timeout,
+  ])
+    .then(async (cloudResponse) => {
+      clearTimeout(timeoutId);
+      if (!cloudResponse?.secure_url) return;
+      await User.findByIdAndUpdate(userId, {
+        "profile.profilePhoto": cloudResponse.secure_url,
+      });
+    })
+    .catch((error) => {
+      clearTimeout(timeoutId);
+      console.error("Background profile photo upload failed:", error.message);
+    });
 };
 
 const register = async (req, res) => {
@@ -62,8 +70,8 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const cloudResponse = await uploadOptionalProfilePhoto(req.file);
 
+    // Create the user immediately — do NOT wait for Cloudinary.
     const user = await User.create({
       fullname,
       email: email.toLowerCase(),
@@ -71,9 +79,12 @@ const register = async (req, res) => {
       password: hashedPassword,
       role,
       profile: {
-        profilePhoto: cloudResponse ? cloudResponse.secure_url : "",
+        profilePhoto: "",
       },
     });
+
+    // Fire-and-forget: upload photo after responding so signup is instant.
+    uploadProfilePhotoInBackground(req.file, user._id);
 
     return sendResponse(res, 201, true, "User registered successfully", sanitizeUser(user));
   } catch (error) {
